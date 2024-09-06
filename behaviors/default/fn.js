@@ -208,311 +208,398 @@ class LightPawn extends PawnBehavior {
     //   console.log("Object reset:", object.name); // Log when object is reset
     // };
 
-    const onDocumentMouseClick = async (event) => {
-      try {
-        // Fetch the API value
-        const apiResponse = await fetch("/api/getValue");
-        const apiData = await apiResponse.json();
-        const apiValue = apiData.value;
+    // const onDocumentMouseClick = async (event) => {
+    //   try {
+    //     // Fetch the API value
+    //     const apiResponse = await fetch(
+    //       "https://full-duplex-dynalic-api.vercel.app/btn-state"
+    //     );
+    //     const apiData = await apiResponse.json();
+    //     const apiValue = apiData.btnState;
 
-        console.log("API Value:", apiValue); // Debug log for the API value
+    //     console.log("API Value:", apiValue); // Debug log for the API value
 
-        // Only proceed with the interactions if the API value is 1
-        if (apiValue === 1) {
-          // Handle raycasting and object interactions
+    //     // Only proceed with the interactions if the API value is 1
+    //     if (apiValue === 1) {
+    //       // Handle raycasting and object interactions
 
-          const mouse = new THREE.Vector2(
-            (event.clientX / window.innerWidth) * 2 - 1,
-            -(event.clientY / window.innerHeight) * 2 + 1
-          );
+    //       const mouse = new THREE.Vector2(
+    //         (event.clientX / window.innerWidth) * 2 - 1,
+    //         -(event.clientY / window.innerHeight) * 2 + 1
+    //       );
 
-          const raycaster = new THREE.Raycaster();
-          raycaster.setFromCamera(mouse, trm.camera);
+    //       const raycaster = new THREE.Raycaster();
+    //       raycaster.setFromCamera(mouse, trm.camera);
 
-          const intersects = raycaster.intersectObjects(
-            Array.from(allowedObjects),
-            true
-          );
+    //       const intersects = raycaster.intersectObjects(
+    //         Array.from(allowedObjects),
+    //         true
+    //       );
 
-          console.log("Intersects:", intersects); // Debug log for intersects
+    //       console.log("Intersects:", intersects); // Debug log for intersects
 
-          if (intersects.length > 0) {
-            const clickedObject = intersects[0].object;
-            console.log("Clicked Object:", clickedObject.name); // Log clicked object
+    //       if (intersects.length > 0) {
+    //         const clickedObject = intersects[0].object;
+    //         console.log("Clicked Object:", clickedObject.name); // Log clicked object
 
-            if (highlightedObject === clickedObject) {
-              resetObjectMaterial(clickedObject);
-              hideAllInfo();
-              stopSpeaking();
-              highlightedObject = null;
-            } else {
-              // Reset previously highlighted object
-              if (highlightedObject) {
-                resetObjectMaterial(highlightedObject);
-                stopSpeaking();
-              }
-
-              // Highlight the clicked object
-              highlightObject(clickedObject);
-              speakObjectName(clickedObject.name);
-
-              let isTile = false;
-              let isRack = false;
-              let isObject = false;
-
-              // Check if clickedObject is a tile
-              for (let i = 0; i <= 77; i++) {
-                if (clickedObject === model.children[71].children[i]) {
-                  isTile = true;
-                  break;
-                }
-              }
-
-              if (isTile) {
-                hideServerInfo();
-                hideCharts();
-                hideCharts2();
-                hideCharts1();
-                hideCharts3();
-                hideHVACInfo();
-                hideCharts4();
-                displayTileInfo(clickedObject);
-              } else {
-                // Check if clickedObject is a rack
-                for (let i = 0; i <= 70; i++) {
-                  if (clickedObject === model.children[i].children[0]) {
-                    if (i >= 5 && i <= 15) {
-                      continue; // Skip certain racks
-                    }
-                    isRack = true;
-                    break;
-                  }
-                }
-
-                if (isRack) {
-                  displayServerInfo(clickedObject);
-                  updateCharts(clickedObject);
-                  hideTileInfo();
-                  hideHVACInfo();
-                  hideCharts();
-                  hideCharts2();
-                  hideCharts4();
-                } else {
-                  // Check if clickedObject is another specific object type
-                  for (let i = 0; i <= 17; i++) {
-                    for (let j = 0; j <= 2; j++) {
-                      if (
-                        clickedObject ===
-                        model.children[79].children[i].children[j]
-                      ) {
-                        isObject = true;
-                        break;
-                      }
-                    }
-                  }
-
-                  if (isObject) {
-                    displayHVACInfo(clickedObject);
-                    updateCharts2(clickedObject);
-                    hideServerInfo();
-                    hideCharts3();
-                    hideCharts1();
-                    hideTileInfo();
-                    hideCharts();
-                    hideCharts2();
-                  } else {
-                    displayServerInfo(clickedObject);
-                    hideHVACInfo();
-                    updateCharts1(clickedObject);
-                    hideTileInfo();
-                    hideCharts1();
-                    hideCharts3();
-                    hideCharts4();
-                    hideHVACInfo();
-                  }
-                }
-              }
-            }
-          } else {
-            console.log("No object clicked."); // Log if no object was clicked
-
-            // Hide the serverInfo div and charts if no object is clicked
-            hideAllInfo();
-
-            // Reset previously highlighted object
-            if (highlightedObject) {
-              resetObjectMaterial(highlightedObject);
-              stopSpeaking();
-              highlightedObject = null; // Clear the highlightedObject
-            }
-          }
-        } else {
-          console.log("API value is 0, interactions disabled."); // Log when API value is 0
-        }
-      } catch (error) {
-        console.error("Error fetching API value:", error);
-      }
-    };
-
-    const highlightObject = (object) => {
-      // Store original material
-      if (!originalMaterials.has(object)) {
-        originalMaterials.set(object, object.material.clone()); // Clone the material to ensure a deep copy
-      }
-
-      // Set highlight material
-      const highlightMaterial = new THREE.MeshBasicMaterial({
-        color: 0xffff00,
-      });
-      object.material = highlightMaterial;
-
-      // Store highlighted object
-      highlightedObject = object;
-      console.log("Object highlighted:", object.name); // Log when object is highlighted
-    };
-
-    const resetObjectMaterial = (object) => {
-      // Reset to original material
-      const originalMaterial = originalMaterials.get(object);
-      if (originalMaterial) {
-        object.material = originalMaterial;
-      }
-
-      // Clear the highlightedObject if it is being reset
-      if (highlightedObject === object) {
-        highlightedObject = null;
-      }
-      console.log("Object reset:", object.name); // Log when object is reset
-    };
-
-    // const onDocumentMouseClick = (event) => {
-    //   const mouse = new THREE.Vector2(
-    //     (event.clientX / window.innerWidth) * 2 - 1,
-    //     -(event.clientY / window.innerHeight) * 2 + 1
-    //   );
-
-    //   const raycaster = new THREE.Raycaster();
-    //   raycaster.setFromCamera(mouse, trm.camera);
-
-    //   const intersects = raycaster.intersectObjects(
-    //     Array.from(allowedObjects),
-    //     true
-    //   );
-
-    //   if (intersects.length > 0) {
-    //     const clickedObject = intersects[0].object;
-
-    //     if (highlightedObject === clickedObject) {
-    //       resetObjectMaterial(clickedObject);
-    //       hideAllInfo();
-    //       stopSpeaking();
-    //       highlightedObject = null;
-    //     } else {
-    //       // Reset previously highlighted object
-    //       if (highlightedObject) {
-    //         resetObjectMaterial(highlightedObject);
-    //         stopSpeaking();
-    //       }
-
-    //       // Highlight the clicked object
-    //       highlightObject(clickedObject);
-    //       speakObjectName(clickedObject.name);
-
-    //       let isTile = false;
-    //       let isRack = false;
-    //       let isObject = false;
-
-    //       // Check if clickedObject is a tile
-    //       for (let i = 0; i <= 77; i++) {
-    //         if (clickedObject === model.children[71].children[i]) {
-    //           isTile = true;
-    //           break;
-    //         }
-    //       }
-
-    //       if (isTile) {
-    //         hideServerInfo();
-    //         hideCharts();
-    //         hideCharts2();
-    //         hideCharts1();
-    //         hideCharts3();
-    //         hideHVACInfo();
-    //         hideCharts4();
-    //         displayTileInfo(clickedObject);
-    //       } else {
-    //         // Check if clickedObject is a rack
-    //         for (let i = 0; i <= 70; i++) {
-    //           if (clickedObject === model.children[i].children[0]) {
-    //             if (i >= 5 && i <= 15) {
-    //               continue; // Skip certain racks
-    //             }
-    //             isRack = true;
-    //             break;
-    //           }
-    //         }
-
-    //         if (isRack) {
-    //           displayServerInfo(clickedObject);
-    //           updateCharts(clickedObject);
-    //           hideTileInfo();
-    //           hideHVACInfo();
-    //           hideCharts();
-    //           hideCharts2();
-    //           hideCharts4();
+    //         if (highlightedObject === clickedObject) {
+    //           resetObjectMaterial(clickedObject);
+    //           hideAllInfo();
+    //           stopSpeaking();
+    //           highlightedObject = null;
     //         } else {
-    //           // Check if clickedObject is another specific object type
-    //           for (let i = 0; i <= 17; i++) {
-    //             for (let j = 0; j <= 2; j++) {
-    //               if (
-    //                 clickedObject === model.children[79].children[i].children[j]
-    //               ) {
-    //                 isObject = true;
+    //           // Reset previously highlighted object
+    //           if (highlightedObject) {
+    //             resetObjectMaterial(highlightedObject);
+    //             stopSpeaking();
+    //           }
+
+    //           // Highlight the clicked object
+    //           highlightObject(clickedObject);
+    //           speakObjectName(clickedObject.name);
+
+    //           let isTile = false;
+    //           let isRack = false;
+    //           let isObject = false;
+
+    //           // Check if clickedObject is a tile
+    //           for (let i = 0; i <= 77; i++) {
+    //             if (clickedObject === model.children[71].children[i]) {
+    //               isTile = true;
+    //               break;
+    //             }
+    //           }
+
+    //           if (isTile) {
+    //             hideServerInfo();
+    //             hideCharts();
+    //             hideCharts2();
+    //             hideCharts1();
+    //             hideCharts3();
+    //             hideHVACInfo();
+    //             hideCharts4();
+    //             displayTileInfo(clickedObject);
+    //           } else {
+    //             // Check if clickedObject is a rack
+    //             for (let i = 0; i <= 70; i++) {
+    //               if (clickedObject === model.children[i].children[0]) {
+    //                 if (i >= 5 && i <= 15) {
+    //                   continue; // Skip certain racks
+    //                 }
+    //                 isRack = true;
     //                 break;
     //               }
     //             }
-    //           }
 
-    //           if (isObject) {
-    //             displayHVACInfo(clickedObject);
-    //             updateCharts2(clickedObject);
-    //             hideServerInfo();
-    //             hideCharts3();
-    //             hideCharts1();
-    //             hideTileInfo();
-    //             hideCharts();
-    //             hideCharts2();
-    //           } else {
-    //             displayServerInfo(clickedObject);
-    //             hideHVACInfo();
-    //             updateCharts1(clickedObject);
-    //             hideTileInfo();
-    //             hideCharts1();
-    //             hideCharts3();
-    //             hideCharts4();
-    //             hideHVACInfo();
+    //             if (isRack) {
+    //               displayServerInfo(clickedObject);
+    //               updateCharts(clickedObject);
+    //               hideTileInfo();
+    //               hideHVACInfo();
+    //               hideCharts();
+    //               hideCharts2();
+    //               hideCharts4();
+    //             } else {
+    //               // Check if clickedObject is another specific object type
+    //               for (let i = 0; i <= 17; i++) {
+    //                 for (let j = 0; j <= 2; j++) {
+    //                   if (
+    //                     clickedObject ===
+    //                     model.children[79].children[i].children[j]
+    //                   ) {
+    //                     isObject = true;
+    //                     break;
+    //                   }
+    //                 }
+    //               }
+
+    //               if (isObject) {
+    //                 displayHVACInfo(clickedObject);
+    //                 updateCharts2(clickedObject);
+    //                 hideServerInfo();
+    //                 hideCharts3();
+    //                 hideCharts1();
+    //                 hideTileInfo();
+    //                 hideCharts();
+    //                 hideCharts2();
+    //               } else {
+    //                 displayServerInfo(clickedObject);
+    //                 hideHVACInfo();
+    //                 updateCharts1(clickedObject);
+    //                 hideTileInfo();
+    //                 hideCharts1();
+    //                 hideCharts3();
+    //                 hideCharts4();
+    //                 hideHVACInfo();
+    //               }
+    //             }
     //           }
     //         }
-    //       }
-    //     }
-    //   } else {
-    //     // Hide the serverInfo div and charts if no object is clicked
-    //     hideAllInfo();
+    //       } else {
+    //         console.log("No object clicked."); // Log if no object was clicked
 
-    //     // Reset previously highlighted object
-    //     if (highlightedObject) {
-    //       resetObjectMaterial(highlightedObject);
-    //       stopSpeaking();
-    //       highlightedObject = null; // Clear the highlightedObject
+    //         // Hide the serverInfo div and charts if no object is clicked
+    //         hideAllInfo();
+
+    //         // Reset previously highlighted object
+    //         if (highlightedObject) {
+    //           resetObjectMaterial(highlightedObject);
+    //           stopSpeaking();
+    //           highlightedObject = null; // Clear the highlightedObject
+    //         }
+    //       }
+    //     } else {
+    //       console.log("API value is 0, interactions disabled."); // Log when API value is 0
     //     }
+    //   } catch (error) {
+    //     console.error("Error fetching API value:", error);
     //   }
     // };
+
+    // const highlightObject = (object) => {
+    //   // Store original material
+    //   if (!originalMaterials.has(object)) {
+    //     originalMaterials.set(object, object.material.clone()); // Clone the material to ensure a deep copy
+    //   }
+
+    //   // Set highlight material
+    //   const highlightMaterial = new THREE.MeshBasicMaterial({
+    //     color: 0xffff00,
+    //   });
+    //   object.material = highlightMaterial;
+
+    //   // Store highlighted object
+    //   highlightedObject = object;
+    //   console.log("Object highlighted:", object.name); // Log when object is highlighted
+    // };
+
+    // const resetObjectMaterial = (object) => {
+    //   // Reset to original material
+    //   const originalMaterial = originalMaterials.get(object);
+    //   if (originalMaterial) {
+    //     object.material = originalMaterial;
+    //   }
+
+    //   // Clear the highlightedObject if it is being reset
+    //   if (highlightedObject === object) {
+    //     highlightedObject = null;
+    //   }
+    //   console.log("Object reset:", object.name); // Log when object is reset
+    // };
+
+    const onDocumentMouseClick = (event) => {
+      const mouse = new THREE.Vector2(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        -(event.clientY / window.innerHeight) * 2 + 1
+      );
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, trm.camera);
+
+      const intersects = raycaster.intersectObjects(
+        Array.from(allowedObjects),
+        true
+      );
+
+      if (intersects.length > 0) {
+        const clickedObject = intersects[0].object;
+
+        if (highlightedObject === clickedObject) {
+          resetObjectMaterial(clickedObject);
+          hideAllInfo();
+          stopSpeaking();
+          highlightedObject = null;
+        } else {
+          // Reset previously highlighted object
+          if (highlightedObject) {
+            resetObjectMaterial(highlightedObject);
+            stopSpeaking();
+          }
+
+          // Highlight the clicked object
+          highlightObject(clickedObject);
+          speakObjectName(clickedObject.name);
+
+          let isTile = false;
+          let isRack = false;
+          let isObject = false;
+
+          // Check if clickedObject is a tile
+          for (let i = 0; i <= 77; i++) {
+            if (clickedObject === model.children[71].children[i]) {
+              isTile = true;
+              break;
+            }
+          }
+
+          if (isTile) {
+            hideServerInfo();
+            hideCharts();
+            hideCharts2();
+            hideCharts1();
+            hideCharts3();
+            hideHVACInfo();
+            hideCharts4();
+            displayTileInfo(clickedObject);
+          } else {
+            // Check if clickedObject is a rack
+            for (let i = 0; i <= 70; i++) {
+              if (clickedObject === model.children[i].children[0]) {
+                if (i >= 5 && i <= 15) {
+                  continue; // Skip certain racks
+                }
+                isRack = true;
+                break;
+              }
+            }
+
+            if (isRack) {
+              displayServerInfo(clickedObject);
+              updateCharts(clickedObject);
+              hideTileInfo();
+              hideHVACInfo();
+              hideCharts();
+              hideCharts2();
+              hideCharts4();
+            } else {
+              // Check if clickedObject is another specific object type
+              for (let i = 0; i <= 17; i++) {
+                for (let j = 0; j <= 2; j++) {
+                  if (
+                    clickedObject === model.children[79].children[i].children[j]
+                  ) {
+                    isObject = true;
+                    break;
+                  }
+                }
+              }
+
+              if (isObject) {
+                displayHVACInfo(clickedObject);
+                updateCharts2(clickedObject);
+                hideServerInfo();
+                hideCharts3();
+                hideCharts1();
+                hideTileInfo();
+                hideCharts();
+                hideCharts2();
+              } else {
+                displayServerInfo(clickedObject);
+                hideHVACInfo();
+                updateCharts1(clickedObject);
+                hideTileInfo();
+                hideCharts1();
+                hideCharts3();
+                hideCharts4();
+                hideHVACInfo();
+              }
+            }
+          }
+        }
+      } else {
+        // Hide the serverInfo div and charts if no object is clicked
+        hideAllInfo();
+
+        // Reset previously highlighted object
+        if (highlightedObject) {
+          resetObjectMaterial(highlightedObject);
+          stopSpeaking();
+          highlightedObject = null; // Clear the highlightedObject
+        }
+      }
+    };
+
+    // const speakObjectName = (name) => {
+    //   const utterance = new SpeechSynthesisUtterance(name);
+    //   speechSynthesis.speak(utterance);
+    // };
+
+    // const stopSpeaking = () => {
+    //   speechSynthesis.cancel();
+    // };
+
+    // const checkAPIAndSpeak = async () => {
+    //   try {
+    //     const response = await fetch(
+    //       "https://full-duplex-dynalic-api.vercel.app/btn-state"
+    //     );
+    //     const data = await response.json();
+    //     console.log(data.btnState);
+
+    //     if (data.btnState === 1) {
+    //       speakObjectName("Object name or any text you want to speak");
+    //       displayServerInfo(clickedObject);
+    //     } else if (data.btnState === 0) {
+    //       stopSpeaking();
+    //       hideServerInfo();
+    //     }
+    //   } catch (error) {
+    //     console.error("Error fetching the API:", error);
+    //   }
+    // };
+
+    // // Call this function to check the API and trigger the speaking functionality
+    // checkAPIAndSpeak();
+
+    // // Optionally, set an interval to continuously check the API value
+    // setInterval(checkAPIAndSpeak, 5000); // Checks every 5 seconds
 
     const speakObjectName = (name) => {
       const utterance = new SpeechSynthesisUtterance(name);
       speechSynthesis.speak(utterance);
     };
+
     const stopSpeaking = () => {
       speechSynthesis.cancel();
+    };
+
+    const checkAPIAndSpeak = async () => {
+      try {
+        const response = await fetch(
+          "https://full-duplex-dynalic-api.vercel.app/btn-state"
+        );
+        const data = await response.json();
+        console.log(data.btnState);
+
+        if (data.btnState === 1) {
+          speakObjectName("Object name or any text you want to speak");
+          displayHVACInfo1("Object_01001"); // Pass the relevant object here
+        } else if (data.btnState === 0) {
+          stopSpeaking();
+          hideHVACInfo1();
+        }
+      } catch (error) {
+        console.error("Error fetching the API:", error);
+      }
+    };
+
+    // Call this function to check the API and trigger the speaking and HVAC info functionality
+    checkAPIAndSpeak();
+
+    // Optionally, set an interval to continuously check the API value
+    setInterval(checkAPIAndSpeak, 5000); // Checks every 5 seconds
+
+    const displayHVACInfo1 = (object) => {
+      const HVACInfo = document.getElementById("HVACInfo");
+      const powerCoolingTower = generateDynamicPower();
+
+      HVACInfo.innerHTML = `
+        <h3>HVAC Rack Info</h3>
+        <p>Name: ${object.name || "N/A"}</p>
+        <p>Power Cooling Tower: ${powerCoolingTower} kW</p>
+        <hr>
+    `;
+
+      HVACInfo.style.left = "10px"; // Set position to fixed values for now
+      HVACInfo.style.top = "10px";
+      HVACInfo.style.display = "block";
+
+      // Update and display the perforation chart
+    };
+
+    const hideHVACInfo1 = () => {
+      const HVACInfo = document.getElementById("HVACInfo");
+      HVACInfo.style.display = "none";
     };
 
     const displayHVACInfo = (object) => {
