@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <title>Server Room</title>
+  <link id="microverse-css" rel="stylesheet" href="./assets/css/microverse.css">
+
+  <script defer src="lib/index-3bb4cf50.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/loaders/GLTFLoader.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/loaders/DRACOLoader.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://code.highcharts.com/highcharts-more.js"></script>
+  <script src="https://code.highcharts.com/modules/heatmap.js"></script>
+  <script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
+  <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+
+  <style>
+    #TileInfo {
+      position: absolute;
+      display: none;
+      padding: 1px;
+      top: 80px !important;
+      z-index: 1000;
+      font-size: 15px;
+      width: auto;
+      height: auto;
+      left: 5px !important;
+      line-height: 0.5;
+    }
+
+    #HVACInfo {
+      position: absolute;
+      display: none;
+      padding: 1px;
+      top: 80px !important;
+      z-index: 1000;
+      font-size: 15px;
+      width: auto;
+      height: auto;
+      left: 5px !important;
+      line-height: 0.5;
+    }
+
+    #serverInfo {
+      position: absolute;
+      display: none;
+      padding: 1px;
+      top: 80px !important;
+      z-index: 1000;
+      font-size: 14px;
+      width: auto;
+      height: auto;
+      left: 5px !important;
+      line-height: 0.5;
+    }
+
+    #chartContainer {
+      position: absolute;
+      display: none;
+      /* background-color: whitesmoke; */
+      padding: 3px;
+      border: 0.2px solid #ccc;
+      z-index: 1000;
+      top: 190px !important;
+      left: 5px;
+      bottom: 100px;
+      height: 300px !important;
+      width: 330px !important;
+    }
+
+    #chartContainer1 {
+      position: absolute;
+      display: none;
+      /* background-color: whitesmoke; */
+      padding: 3px;
+      border: 0.2px solid #ccc;
+      z-index: 1000;
+      top: 190px !important;
+      left: 5px;
+      bottom: 100px;
+      height: 300px !important;
+      width: 330px !important;
+    }
+
+    #powerProfileContainer {
+      position: absolute;
+      display: none;
+      /* background-color: whitesmoke;*/
+      padding: 3px;
+      border: 1px solid #ccc;
+      z-index: 1000;
+      top: 520px !important;
+      left: 5px;
+      bottom: 100px;
+      height: 300px !important;
+      width: 330px !important;
+    }
+
+    #powerProfileContainer1 {
+      position: absolute;
+      display: none;
+      /* background-color: whitesmoke;*/
+      padding: 3px;
+      border: 1px solid #ccc;
+      z-index: 1000;
+      top: 520px !important;
+      left: 5px;
+      bottom: 100px;
+      height: 300px !important;
+      width: 330px !important;
+    }
+
+    #rackImage {
+      display: none;
+      /* Hidden by default */
+      position: absolute;
+      top: 175px;
+      right: 12px;
+      width: 50px;
+      height: 200px;
+      z-index: 1001;
+      /* Ensure it appears above other elements */
+    }
+
+    #chartContainerA {
+      position: absolute;
+      display: none;
+
+      padding: 3px;
+      border: 1px solid #ccc;
+      z-index: 1000;
+      top: 190px !important;
+      left: 5px;
+      bottom: 100px;
+
+      height: 200px !important;
+      width: 250px !important;
+    }
+
+    #chartContainerB {
+      position: absolute;
+      display: none;
+      /* background-color: whitesmoke;*/
+      padding: 3px;
+      border: 1px solid #ccc;
+      z-index: 1002;
+      top: 400px !important;
+      left: 5px;
+      bottom: 500px;
+      height: 200px !important;
+      width: 250px !important;
+    }
+
+    #container_humidity {
+      position: absolute;
+      display: none;
+      /* background-color: whitesmoke; */
+      padding: 3px;
+      border: 0.2px solid #ccc;
+      z-index: 1001;
+      top: 610px !important;
+      left: 5px;
+      bottom: 100px;
+      height: 200px !important;
+      width: 250px !important;
+    }
+
+
+    .highcharts-credits {
+      display: none;
+    }
+
+    .highcharts-a11y-proxy-element highcharts-no-tooltip {
+      display: none;
+    }
+
+    .highcharts-subtitle {
+      display: none;
+    }
+  </style>
+
+
+<body class="no-select" style="position: relative;">
+  <div id="serverInfo"></div>
+  <div id="TileInfo"></div>
+  <div id="HVACInfo"></div>
+  <div id="chartContainer" style="width: 100%; height: 400px;"></div>
+  <div id="chartContainer1" style="width: 100%; height: 400px;"></div>
+  <div id="powerProfileContainer" style="width: 100%; height: 400px;"></div>
+  <div id="powerProfileContainer1" style="width: 100%; height: 400px;"> </div>
+  <div id="chartContainerA" style="width: 100%; height: 400px;"></div>
+  <div id="chartContainerB" style="width: 100%; height: 400px;"></div>
+  <div id="container_humidity" style="width: 100%; height: 400px;"></div>
+
+
+
+
+  <img id="rackImage" src="./assets/scale.png" alt="image">
+</body>
+
+</html>
