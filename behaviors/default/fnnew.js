@@ -1603,6 +1603,18 @@ class LightPawn extends PawnBehavior {
       }
     };
 
+    // Function to check API response every 1 second
+    const checkAPIEverySecond = () => {
+      setInterval(async () => {
+        const apiValue = await checkAPIResponse();
+        // You can handle the apiValue here if needed
+        console.log("Checked API value:", apiValue);
+      }, 1000); // 1000 ms = 1 second
+    };
+
+    // Start checking the API every 1 second
+    checkAPIEverySecond();
+
     // Update handleObjectInteraction function
     // const handleObjectInteraction = async (clickedObject) => {
     //   const apiValue = await checkAPIResponse(); // Check the API response
