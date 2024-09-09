@@ -43,6 +43,7 @@ class LightPawn extends PawnBehavior {
         console.log("Clicked object name:", clickedObject.name); // Log the name of the clicked object
 
         if (highlightedObject === clickedObject) {
+          // Reset object when clicked twice
           resetObjectMaterial(clickedObject);
           hideAllInfo();
           stopSpeaking();
@@ -99,6 +100,7 @@ class LightPawn extends PawnBehavior {
         console.error("Error sending toggle value to API:", error);
       }
     };
+
     const speakObjectName = (name) => {
       const utterance = new SpeechSynthesisUtterance(name);
       speechSynthesis.speak(utterance);
@@ -1393,19 +1395,8 @@ class LightPawn extends PawnBehavior {
       }
     };
 
-    // Function to check API response every 1 second
-    const checkAPIEverySecond = () => {
-      setInterval(async () => {
-        const apiValue = await checkAPIResponse();
-        // You can handle the apiValue here if needed
-        console.log("Checked API value:", apiValue);
-      }, 1000); // 1000 ms = 1 second
-    };
-
-    // Start checking the API every 1 second
-
     const handleObjectInteraction = async (clickedObject) => {
-      const apiValue = await checkAPIEverySecond(); // Check the API response
+      const apiValue = await checkAPIResponse(); // Check the API response
 
       if (apiValue === 1) {
         let isTile = false;
@@ -1496,8 +1487,21 @@ class LightPawn extends PawnBehavior {
       }
     };
 
+    setInterval(async () => {
+      const apiValue = await checkAPIResponse();
+      if (apiValue === 0) {
+        hideAllInfo(); // Hide all info if API value is 0
+      } else {
+        // If API value is 1, update the information based on the current highlighted object
+        if (highlightedObject) {
+          handleObjectInteraction(highlightedObject);
+        }
+      }
+    }, 2000);
     document.addEventListener("click", onDocumentMouseClick, false);
 
+    // Load the GLTF model
+    // Initialize DRACOLoader
     const dracoLoader = new THREE.DRACOLoader();
     dracoLoader.setDecoderPath(
       "https://cdn.jsdelivr.net/npm/three@0.152.0/examples/jsm/libs/draco/"
@@ -1551,6 +1555,19 @@ class LightPawn extends PawnBehavior {
               allowedObjects.add(child);
             }
           });
+          // setInterval(() => {
+          //   allowedObjects.forEach((object) => {
+          //     checkTemperatureAndUpdateColor(object);
+          //   });
+          // }, 5000);
+
+          // setInterval(() => {
+          //   if (params.checkTemperature) {
+          //     allowedObjects.forEach((object) => {
+          //       checkTemperatureAndUpdateColor(object);
+          //     });
+          //   }
+          // }, 5000);
 
           resolve(model);
         },
