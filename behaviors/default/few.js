@@ -1403,9 +1403,9 @@ class LightPawn extends PawnBehavior {
     };
 
     // Start checking the API every 1 second
-    checkAPIEverySecond();
+
     const handleObjectInteraction = async (clickedObject) => {
-      const apiValue = await checkAPIResponse(); // Check the API response
+      const apiValue = await checkAPIEverySecond(); // Check the API response
 
       if (apiValue === 1) {
         let isTile = false;
@@ -1587,7 +1587,7 @@ class LightPawn extends PawnBehavior {
 export default {
   modules: [
     {
-      name: "Fn",
+      name: "Few",
       pawnBehaviors: [LightPawn],
     },
   ],
