@@ -100,26 +100,35 @@ class LightPawn extends PawnBehavior {
 
         console.log("Clicked object name:", clickedObject.name); // Log the name of the clicked object
         await storeClickedObjectName(clickedObject.name);
-        // Store the clicked object name in the API
-        // await storeClickedObjectName(clickedObject.name);
 
-        if (highlightedObject === clickedObject) {
-          resetObjectMaterial(clickedObject);
-          hideAllInfo();
-          stopSpeaking();
-          highlightedObject = null;
-          await toggleAPI(0); // Send value 0 to API when object is unselected
-        } else {
-          if (highlightedObject) {
-            resetObjectMaterial(highlightedObject);
+        // Fetch the highlighted object name from the API
+        const highlightedObjectName = await fetchHighlightedObjectName();
+
+        if (clickedObject.name === highlightedObjectName) {
+          // Only highlight if the clicked object matches the API data
+          if (highlightedObject === clickedObject) {
+            resetObjectMaterial(clickedObject);
+            hideAllInfo();
             stopSpeaking();
+            highlightedObject = null;
+            await toggleAPI(0); // Send value 0 to API when object is unselected
+          } else {
+            if (highlightedObject) {
+              resetObjectMaterial(highlightedObject);
+              stopSpeaking();
+            }
+
+            highlightObject(clickedObject);
+            speakObjectName(clickedObject.name);
+
+            await toggleAPI(1); // Send value 1 to API since a clickable object was selected
+            handleObjectInteraction(clickedObject);
+            highlightedObject = clickedObject; // Update highlightedObject
           }
-
-          highlightObject(clickedObject);
-          speakObjectName(clickedObject.name);
-
-          await toggleAPI(1); // Send value 1 to API since a clickable object was selected
-          handleObjectInteraction(clickedObject);
+        } else {
+          console.log(
+            "Clicked object does not match API data, no highlighting."
+          );
         }
       } else {
         console.log("Clicked outside the model, no API toggle.");
@@ -1503,6 +1512,31 @@ class LightPawn extends PawnBehavior {
       const apiValue = await checkAPIResponse();
       if (apiValue === 0) {
         hideAllInfo(); // Hide all info if API value is 0
+        resetObjectMaterial(highlightedObject); // Reset the object material if API value is 0
+
+        // Attempt to send "NULL" as a string to the API instead of null
+        try {
+          const response = await fetch(
+            "https://termpvariable.vercel.app/store-data",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ variable: "NULL" }), // Sending "NULL" as a string
+            }
+          );
+
+          const result = await response.json();
+          const data = result.data;
+          console.log("NULL value posted to API:", data);
+        } catch (error) {
+          // Log any errors for debugging
+          console.error(
+            "Error posting NULL value to API:",
+            error.message || error
+          );
+        }
       } else {
         // If API value is 1, update the information based on the current highlighted object
         if (highlightedObject) {
@@ -1609,7 +1643,7 @@ class LightPawn extends PawnBehavior {
 
         // Reset previously highlighted object
         if (highlightedObject) {
-          resetObjectMaterial(highlightedObject);
+          // resetObjectMaterial(highlightedObject);
           stopSpeaking();
           highlightedObject = null; // Clear the highlightedObject
         }
@@ -1722,7 +1756,7 @@ class LightPawn extends PawnBehavior {
 export default {
   modules: [
     {
-      name: "Few",
+      name: "Few11",
       pawnBehaviors: [LightPawn],
     },
   ],
