@@ -1499,6 +1499,17 @@ class LightPawn extends PawnBehavior {
         console.error("Error fetching highlighted object name:", error);
       }
     };
+    setInterval(async () => {
+      const apiValue = await checkAPIResponse();
+      if (apiValue === 0) {
+        hideAllInfo(); // Hide all info if API value is 0
+      } else {
+        // If API value is 1, update the information based on the current highlighted object
+        if (highlightedObject) {
+          handleObjectInteraction(highlightedObject);
+        }
+      }
+    }, 2000);
 
     const highlightObjectByName = (name) => {
       const objectToHighlight = Array.from(allowedObjects).find(
