@@ -12,7 +12,7 @@ export function init(Constants) {
     "names.js",
     "fun1.js",
     "fun2.js",
-    "fnnew.js",
+
     "few.js",
   ];
   const avatarModels = [

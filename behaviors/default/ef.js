@@ -22,64 +22,6 @@ class LightPawn extends PawnBehavior {
 
     // List of allowed objects to interact with
     const allowedObjects = new Set();
-    // const onDocumentMouseClick = async (event) => {
-    //   const mouse = new THREE.Vector2(
-    //     (event.clientX / window.innerWidth) * 2 - 1,
-    //     -(event.clientY / window.innerHeight) * 2 + 1
-    //   );
-
-    //   const raycaster = new THREE.Raycaster();
-    //   raycaster.setFromCamera(mouse, trm.camera);
-
-    //   // Intersect the objects in the allowedObjects Set
-    //   const intersects = raycaster.intersectObjects(
-    //     Array.from(allowedObjects),
-    //     true
-    //   );
-
-    //   if (intersects.length > 0) {
-    //     const clickedObject = intersects[0].object;
-
-    //     console.log("Clicked object name:", clickedObject.name); // Log the name of the clicked object
-
-    //     if (highlightedObject === clickedObject) {
-    //       // Reset object when clicked twice
-    //       resetObjectMaterial(clickedObject);
-    //       hideAllInfo();
-    //       stopSpeaking();
-    //       highlightedObject = null;
-    //       await toggleAPI(0); // Send value 0 to API when object is unselected
-    //     } else {
-    //       // Reset previously highlighted object
-    //       if (highlightedObject) {
-    //         resetObjectMaterial(highlightedObject);
-    //         stopSpeaking();
-    //       }
-
-    //       // Highlight the clicked object
-    //       highlightObject(clickedObject);
-    //       speakObjectName(clickedObject.name);
-
-    //       // Send value 1 to API since a clickable object was selected
-    //       await toggleAPI(1);
-
-    //       // Check if the clicked object is a tile, rack, or another type of object
-    //       handleObjectInteraction(clickedObject);
-    //     }
-    //   } else {
-    //     // Clicked outside the allowed objects, do not change the API state
-    //     console.log("Clicked outside the model, no API toggle.");
-
-    //     // Reset and hide info if previously highlighted
-    //     if (highlightedObject) {
-    //       resetObjectMaterial(highlightedObject);
-    //       stopSpeaking();
-    //       highlightedObject = null; // Clear the highlightedObject
-    //       hideAllInfo();
-    //     }
-    //     // Don't toggle API since no valid object was clicked
-    //   }
-    // };
     const onDocumentMouseClick = async (event) => {
       const mouse = new THREE.Vector2(
         (event.clientX / window.innerWidth) * 2 - 1,
@@ -99,39 +41,66 @@ class LightPawn extends PawnBehavior {
         const clickedObject = intersects[0].object;
 
         console.log("Clicked object name:", clickedObject.name); // Log the name of the clicked object
-        await storeClickedObjectName(clickedObject.name);
-        // Store the clicked object name in the API
-        await storeClickedObjectName(clickedObject.name);
 
         if (highlightedObject === clickedObject) {
+          // Reset object when clicked twice
           resetObjectMaterial(clickedObject);
           hideAllInfo();
           stopSpeaking();
           highlightedObject = null;
           await toggleAPI(0); // Send value 0 to API when object is unselected
         } else {
+          // Reset previously highlighted object
           if (highlightedObject) {
             resetObjectMaterial(highlightedObject);
             stopSpeaking();
           }
 
+          // Highlight the clicked object
           highlightObject(clickedObject);
           speakObjectName(clickedObject.name);
 
-          await toggleAPI(1); // Send value 1 to API since a clickable object was selected
+          // Send value 1 to API since a clickable object was selected
+          await toggleAPI(1);
+
+          // Check if the clicked object is a tile, rack, or another type of object
           handleObjectInteraction(clickedObject);
         }
       } else {
+        // Clicked outside the allowed objects, do not change the API state
         console.log("Clicked outside the model, no API toggle.");
 
+        // Reset and hide info if previously highlighted
         if (highlightedObject) {
           resetObjectMaterial(highlightedObject);
           stopSpeaking();
-          highlightedObject = null;
+          highlightedObject = null; // Clear the highlightedObject
           hideAllInfo();
         }
+        // Don't toggle API since no valid object was clicked
       }
     };
+
+    const toggleAPI = async (value) => {
+      try {
+        const response = await fetch(
+          "https://btnstate.onrender.com/toggle-btn",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ value }),
+          }
+        );
+
+        const result = await response.json();
+        console.log(`API Response: ${result}`);
+      } catch (error) {
+        console.error("Error sending toggle value to API:", error);
+      }
+    };
+
     const speakObjectName = (name) => {
       const utterance = new SpeechSynthesisUtterance(name);
       speechSynthesis.speak(utterance);
@@ -1414,67 +1383,6 @@ class LightPawn extends PawnBehavior {
       return Math.round(percentage);
     };
 
-    // Function to store clicked object name in API
-    // const storeClickedObjectName = async (variable) => {
-    //   try {
-    //     const response = await fetch(
-    //       "https://termpvariable.vercel.app/store-data",
-    //       {
-    //         method: "POST",
-    //         headers: {
-    //           "Content-Type": "application/json",
-    //         },
-    //         body: JSON.stringify({ variable }),
-    //       }
-    //     );
-
-    //     const result = await response.json();
-    //     console.log("Stored object name in API:", result);
-    //   } catch (error) {
-    //     console.error("Error storing clicked object name in API:", error);
-    //   }
-    // };
-
-    const storeClickedObjectName = async (variable) => {
-      try {
-        const response = await fetch(
-          "https://termpvariable.vercel.app/store-data",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ variable }),
-          }
-        );
-
-        const result = await response.json();
-        console.log("Stored object name in API:", result);
-      } catch (error) {
-        console.error("Error storing clicked object name in API:", error);
-      }
-    };
-
-    const toggleAPI = async (value) => {
-      try {
-        const response = await fetch(
-          "https://btnstate.onrender.com/toggle-btn",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ value }),
-          }
-        );
-
-        const result = await response.json();
-        console.log(`API Response: ${result}`);
-      } catch (error) {
-        console.error("Error sending toggle value to API:", error);
-      }
-    };
-
     const checkAPIResponse = async () => {
       try {
         const response = await fetch("https://btnstate.onrender.com/btn-state");
@@ -1486,32 +1394,6 @@ class LightPawn extends PawnBehavior {
         return 0; // Return 0 if there is an error
       }
     };
-    const fetchHighlightedObjectName = async () => {
-      try {
-        const response = await fetch(
-          "https://termpvariable.vercel.app/get-data"
-        );
-        const result = await response.json();
-        const objectName = result.data; // Adjust according to your API response
-        highlightObjectByName(objectName);
-        console.log(objectName, "Object is ");
-      } catch (error) {
-        console.error("Error fetching highlighted object name:", error);
-      }
-    };
-
-    const highlightObjectByName = (name) => {
-      const objectToHighlight = Array.from(allowedObjects).find(
-        (obj) => obj.name === name
-      );
-      if (objectToHighlight) {
-        highlightObject(objectToHighlight);
-        highlightedObject = objectToHighlight; // Update highlightedObject
-      }
-    };
-
-    // Set interval to fetch the highlighted object name every 3 seconds
-    setInterval(fetchHighlightedObjectName, 3000);
 
     const handleObjectInteraction = async (clickedObject) => {
       const apiValue = await checkAPIResponse(); // Check the API response
@@ -1605,6 +1487,17 @@ class LightPawn extends PawnBehavior {
       }
     };
 
+    setInterval(async () => {
+      const apiValue = await checkAPIResponse();
+      if (apiValue === 0) {
+        hideAllInfo(); // Hide all info if API value is 0
+      } else {
+        // If API value is 1, update the information based on the current highlighted object
+        if (highlightedObject) {
+          handleObjectInteraction(highlightedObject);
+        }
+      }
+    }, 2000);
     document.addEventListener("click", onDocumentMouseClick, false);
 
     // Load the GLTF model
