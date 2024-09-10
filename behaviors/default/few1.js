@@ -100,41 +100,32 @@ class LightPawn extends PawnBehavior {
 
         console.log("Clicked object name:", clickedObject.name); // Log the name of the clicked object
         await storeClickedObjectName(clickedObject.name);
+        // Store the clicked object name in the API
+        await storeClickedObjectName(clickedObject.name);
 
-        // Fetch the highlighted object name from the API
-        const highlightedObjectName = await fetchHighlightedObjectName();
-
-        if (clickedObject.name === highlightedObjectName) {
-          // Only highlight if the clicked object matches the API data
-          if (highlightedObject === clickedObject) {
-            resetObjectMaterial(clickedObject);
-            hideAllInfo();
-            stopSpeaking();
-            highlightedObject = null;
-            await toggleAPI(0); // Send value 0 to API when object is unselected
-          } else {
-            if (highlightedObject) {
-              resetObjectMaterial(highlightedObject);
-              stopSpeaking();
-            }
-
-            highlightObject(clickedObject);
-            speakObjectName(clickedObject.name);
-
-            await toggleAPI(1); // Send value 1 to API since a clickable object was selected
-            handleObjectInteraction(clickedObject);
-            highlightedObject = clickedObject; // Update highlightedObject
-          }
+        if (highlightedObject === clickedObject) {
+          resetObjectMaterial(clickedObject);
+          hideAllInfo();
+          stopSpeaking();
+          highlightedObject = null;
+          await toggleAPI(0); // Send value 0 to API when object is unselected
         } else {
-          console.log(
-            "Clicked object does not match API data, no highlighting."
-          );
+          if (highlightedObject) {
+            resetObjectMaterial(highlightedObject);
+            stopSpeaking();
+          }
+
+          highlightObject(clickedObject);
+          speakObjectName(clickedObject.name);
+
+          await toggleAPI(1); // Send value 1 to API since a clickable object was selected
+          handleObjectInteraction(clickedObject);
         }
       } else {
         console.log("Clicked outside the model, no API toggle.");
 
         if (highlightedObject) {
-          resetObjectMaterial(highlightedObject);
+          // resetObjectMaterial(highlightedObject);
           stopSpeaking();
           highlightedObject = null;
           hideAllInfo();
