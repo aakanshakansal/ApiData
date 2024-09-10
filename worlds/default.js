@@ -13,7 +13,7 @@ export function init(Constants) {
     "fun1.js",
     "fun2.js",
 
-    "few1.js",
+    "few2.js",
   ];
   const avatarModels = [
     "3kDNEN2jKhiPYcYAfItpXCcaahDmYM54K-kP6mKb_x8AAx8fGxhRREQNAgcOGEUeGEUIGQQaHg4fRQIERB5ELA89CRIHIhgqADoIKTMPWCwTCh0SHD4gPDIyWUQCBEUIGQQaHg4fRQYCCBkEHQ4ZGA5EEgMHOzsPIC46GCoaMxsfOjwhBCIuWxM8XzwZHjpfND8JIw4cBQ8oXi8lOkQPCh8KRD0aDSQSEjkvICQ5BQM6Xi1GHhk9OglGOAcDBw0CHAEYD1wkKR0PITNGDBg",
@@ -66,7 +66,7 @@ export function init(Constants) {
         name: "light",
         layers: ["light"],
         type: "lighting",
-        behaviorModules: ["Light", "Few11"],
+        behaviorModules: ["Light", "Few2"],
         fileName: "/sky/hamburg_canal_4k.exr",
         dataLocation: "./assets/sky/hamburg_canal_4k.exr",
         dataType: "exr",
